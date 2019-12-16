@@ -401,6 +401,7 @@ function serializeNode(
         const cssText = getCssRulesString(stylesheet as CSSStyleSheet);
         if (cssText) {
           delete attributes.rel;
+          attributes._originalHref = attributes.href;
           delete attributes.href;
           attributes._cssText = absoluteToStylesheet(
             cssText,
