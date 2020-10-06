@@ -13,6 +13,7 @@ export declare function serializeNodeWithId(n: Node | INode, options: {
     maskTextClass: string | RegExp;
     maskTextSelector: string | null;
     skipChild: boolean;
+    ignoreChildren: boolean;
     inlineStylesheet: boolean;
     maskInputOptions?: MaskInputOptions;
     maskTextFn: MaskTextFn | undefined;
