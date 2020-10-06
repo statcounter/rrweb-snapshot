@@ -411,6 +411,7 @@ export function serializeNodeWithId(
   map: idNodeMap,
   blockClass: string | RegExp,
   skipChild = false,
+  ignoreChildren = false,
   inlineStylesheet = true,
   maskInputOptions?: MaskInputOptions,
   slimDOMOptions: SlimDOMOptions = {},
@@ -435,22 +436,23 @@ export function serializeNodeWithId(
   // Try to reuse the previous id
   if ('__sn' in n) {
     id = n.__sn.id;
-  } else if (slimDOMExcluded(_serializedNode, slimDOMOptions) ||
+  } else if (ignoreChildren ||
+             slimDOMExcluded(_serializedNode, slimDOMOptions) ||
              (!preserveWhiteSpace &&
               _serializedNode.type === NodeType.Text &&
               !_serializedNode.isStyle &&
               !_serializedNode.textContent.replace(/^\s+|\s+$/gm,'').length
              )) {
+    ignoreChildren = true;
     id = IGNORED_NODE;
   } else {
     id = genId();
   }
   const serializedNode = Object.assign(_serializedNode, { id });
   (n as INode).__sn = serializedNode;
-  if (id === IGNORED_NODE) {
-    return null;  // slimDOM
+  if (id !== IGNORED_NODE) {
+    map[id] = n as INode;
   }
-  map[id] = n as INode;
   let recordChild = !skipChild;
   if (serializedNode.type === NodeType.Element) {
     recordChild = recordChild && !serializedNode.needBlock;
@@ -477,6 +479,7 @@ export function serializeNodeWithId(
         map,
         blockClass,
         skipChild,
+        ignoreChildren,
         inlineStylesheet,
         maskInputOptions,
         slimDOMOptions,
@@ -487,6 +490,9 @@ export function serializeNodeWithId(
         serializedNode.childNodes.push(serializedChildNode);
       }
     }
+  }
+  if (id === IGNORED_NODE) {
+    return null;  // slimDOM
   }
   return serializedNode;
 }
@@ -547,6 +553,7 @@ function snapshot(
       n,
       idNodeMap,
       blockClass,
+      false,
       false,
       inlineStylesheet,
       maskInputOptions,
