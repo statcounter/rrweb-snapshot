@@ -26,6 +26,7 @@ export declare type elementNode = {
     childNodes: serializedNodeWithId[];
     isSVG?: true;
     needBlock?: boolean;
+    placeholderClass?: string;
 };
 export declare type textNode = {
     type: NodeType.Text;
@@ -86,5 +87,6 @@ export declare type SlimDOMOptions = Partial<{
     headMetaHttpEquiv: boolean;
     headMetaAuthorship: boolean;
     headMetaVerification: boolean;
+    adPlaceholder: boolean;
 }>;
 export declare type MaskTextFn = (text: string) => string;

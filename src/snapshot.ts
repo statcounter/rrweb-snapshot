@@ -552,6 +552,7 @@ function lowerIfExists(maybeAttr: string | number | boolean): string {
 
 function slimDOMExcluded(
   sn: serializedNode,
+  node : Node | INode,
   slimDOMOptions: SlimDOMOptions,
 ): boolean {
   if (slimDOMOptions.comment && sn.type === NodeType.Comment) {
@@ -629,6 +630,14 @@ function slimDOMExcluded(
       ) {
         return true;
       }
+      // END meta
+    } else if (slimDOMOptions.adPlaceholder && sn.tagName == 'ins') {
+      // TODO: add more ad types
+      let childElements = Array.from(node.childNodes).filter((cn): cn is Element => cn.nodeType === cn.ELEMENT_NODE);
+      if (childElements.length == 1 && childElements[0].id && childElements[0].id.substring(0, 7) === 'aswift_') {
+        sn.placeholderClass = 'rrweb-ad-placeholder';
+        return true;
+      }
     }
   }
   return false;
@@ -700,7 +709,7 @@ export function serializeNodeWithId(
     id = n.__sn.id;
   } else if (
     ignoreChildren ||
-    slimDOMExcluded(_serializedNode, slimDOMOptions) ||
+    slimDOMExcluded(_serializedNode, n, slimDOMOptions) ||
     (!preserveWhiteSpace &&
       _serializedNode.type === NodeType.Text &&
       !_serializedNode.isStyle &&
@@ -781,12 +790,26 @@ export function serializeNodeWithId(
   }
 
   if (id === IGNORED_NODE) {
-    // we want to also assign the IGNORED_NODE id to child elements
-    // in the same document (so that mutations on them can also be ignored)
-    // which is why we wait until now to return null
-    // however, there is no need to initiate recording on iframes within
-    // ignored nodes, so early-out now
-    return null;  // slimDOM
+    if (serializedNode.type === NodeType.Element &&
+        serializedNode.placeholderClass) {
+      return {
+        type: NodeType.Element,
+        tagName: 'div',
+        attributes: {
+          style: 'width: ' + (n as HTMLElement).clientWidth + 'px;height: ' + (n as HTMLElement).clientHeight + 'px;',
+          class: serializedNode.placeholderClass,
+        },
+        childNodes: [],
+        id: genId(),
+      };
+    } else {
+      // we want to also assign the IGNORED_NODE id to child elements
+      // in the same document (so that mutations on them can also be ignored)
+      // which is why we wait until now to return null
+      // however, there is no need to initiate recording on iframes within
+      // ignored nodes, so early-out now
+      return null;  // slimDOM
+    }
   }
 
   if (
@@ -902,6 +925,7 @@ function snapshot(
           headMetaHttpEquiv: true,
           headMetaAuthorship: true,
           headMetaVerification: true,
+          adPlaceholder: slimDOM === 'all',
         }
       : slimDOM === false
       ? {}
