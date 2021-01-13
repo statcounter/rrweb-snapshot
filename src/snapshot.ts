@@ -797,7 +797,7 @@ export function serializeNodeWithId(
         tagName: 'div',
         attributes: {
           style: 'width: ' + (n as HTMLElement).clientWidth + 'px;height: ' + (n as HTMLElement).clientHeight + 'px;',
-          class: serializedNode.placeholderClass,
+          'class': serializedNode.placeholderClass,
         },
         childNodes: [],
         id: genId(),
